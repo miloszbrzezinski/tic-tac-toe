@@ -1,24 +1,26 @@
 "use client";
 import { Circle, X } from "lucide-react";
-import { useState } from "react";
 
 interface CellProps {
-  sign: string;
-  coordinates: [number, number];
-  makeMove: (row: number, col: number) => void;
+  index: number;
+  sign: string | null;
+  handleClick: (index: number) => void;
 }
-const Cell = ({ sign, coordinates, makeMove }: CellProps) => {
+const Cell = ({ index, sign, handleClick }: CellProps) => {
   //const [sign, setSign] = useState("");
   return (
     <button
       onClick={() => {
-        makeMove(coordinates[0], coordinates[1]);
+        handleClick(index);
       }}
-      className="flex items-center justify-center text-black bg-white w-36 h-36"
+      className="flex items-center justify-center text-black bg-black aspect-square md:aspect-square w-full h-full"
     >
-      {!sign && <div className="w-36 h-36"></div>}
-      {sign === "x" && <X strokeWidth={1} className="w-36 h-36" />}
-      {sign === "o" && <Circle strokeWidth={1.4} className="w-24 h-24" />}
+      {sign === "X" && (
+        <X strokeWidth={1} className="w-24 h-24 text-lime-300" />
+      )}
+      {sign === "O" && (
+        <Circle strokeWidth={1.4} className="w-20 h-20 text-amber-300" />
+      )}
     </button>
   );
 };
