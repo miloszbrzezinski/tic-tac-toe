@@ -24,7 +24,8 @@ export const checkWinner = (squares: Player[]): Player | null => {
 export const minimax = (newBoard: Player[], player: Player): any => {
   const availSpots = newBoard
     .map((val, idx) => (val === null ? idx : null))
-    .filter((v) => v !== null);
+    .filter((v): v is number => v !== null); // This refinement ensures that nulls are excluded
+
   const winner = checkWinner(newBoard);
   if (winner === "O") return { score: -10 };
   else if (winner === "X") return { score: 10 };
@@ -32,10 +33,10 @@ export const minimax = (newBoard: Player[], player: Player): any => {
 
   let moves: any[] = [];
   for (let i = 0; i < availSpots.length; i++) {
-    let move: any = { index: availSpots[i] };
-    newBoard[availSpots[i]] = player;
+    let move: any = { index: availSpots[i] }; // availSpots[i] is guaranteed to be a number here
+    newBoard[availSpots[i]] = player; // Safe to use as index
     move.score = minimax(newBoard, player === "X" ? "O" : "X").score;
-    newBoard[availSpots[i]] = null;
+    newBoard[availSpots[i]] = null; // Reset after calculation
     moves.push(move);
   }
 

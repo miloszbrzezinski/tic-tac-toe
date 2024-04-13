@@ -1,3 +1,4 @@
+"use client";
 import React, { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -9,10 +10,9 @@ type Player = "X" | "O" | "Tie" | null;
 
 export const TicTacToe = () => {
   const [winner, setWinner] = useState("");
+  const [gameType, setGameType] = useState("PvP");
   const [board, setBoard] = useState<Player[]>(Array(9).fill(null));
   const [currentPlayer, setCurrentPlayer] = useState<Player>("X");
-  const searchParams = useSearchParams();
-  const gameType = searchParams.get("game");
 
   const handleClick = (index: number) => {
     if (board[index] || checkWinner(board)) return;
@@ -106,6 +106,36 @@ export const TicTacToe = () => {
       >
         Reset
       </button>
+      <div className="space-y-2 pt-10">
+        <div className="flex space-x-2">
+          <button
+            onClick={() => {
+              setGameType("PvP");
+              clearBoard();
+            }}
+            className={cn(
+              "flex w-full border border-orange-500 text-orange-500 items-center justify-center h-10 rounded-md",
+              gameType === "PvP" &&
+                "bg-orange-500 text-white shadow-lg shadow-orange-800",
+            )}
+          >
+            Player vs Player
+          </button>
+          <button
+            onClick={() => {
+              setGameType("PvC");
+              clearBoard();
+            }}
+            className={cn(
+              "flex w-full border border-orange-500 text-orange-500 items-center justify-center h-10 rounded-md",
+              gameType === "PvC" &&
+                "bg-orange-500 text-white shadow-lg shadow-orange-800",
+            )}
+          >
+            Player vs AI
+          </button>
+        </div>
+      </div>
     </>
   );
 };
