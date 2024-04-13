@@ -19,7 +19,7 @@ const Cell = ({ index, sign, handleClick }: CellProps) => {
         <X strokeWidth={1} className="w-24 h-24 text-lime-300" />
       )}
       {sign === "O" && (
-        <Circle strokeWidth={1.4} className="w-20 h-20 text-amber-300" />
+        <Circle strokeWidth={1.4} className="w-20 h-20 text-fuchsia-500" />
       )}
     </button>
   );

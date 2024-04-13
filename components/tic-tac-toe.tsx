@@ -1,105 +1,36 @@
 import React, { useState } from "react";
-import Cell from "./cell";
 import { useSearchParams } from "next/navigation";
+import { cn } from "@/lib/utils";
+import { checkWinner, minimax } from "@/lib/gameUtils";
+import Cell from "./cell";
+import { Circle, X } from "lucide-react";
 
 type Player = "X" | "O" | "Tie" | null;
 
-interface TicTacToeProps {
-  onPlayer: (player: string) => void;
-  onWinner: (winner: string) => void;
-}
-
-export const TicTacToe = ({ onPlayer, onWinner }: TicTacToeProps) => {
+export const TicTacToe = () => {
+  const [winner, setWinner] = useState("");
   const [board, setBoard] = useState<Player[]>(Array(9).fill(null));
   const [currentPlayer, setCurrentPlayer] = useState<Player>("X");
-  const [winner, setWinner] = useState<Player | null>(null);
   const searchParams = useSearchParams();
   const gameType = searchParams.get("game");
 
-  const checkWinner = (squares: Player[]) => {
-    const lines = [
-      [0, 1, 2],
-      [3, 4, 5],
-      [6, 7, 8], // rows
-      [0, 3, 6],
-      [1, 4, 7],
-      [2, 5, 8], // columns
-      [0, 4, 8],
-      [2, 4, 6], // diagonals
-    ];
-
-    for (let line of lines) {
-      const [a, b, c] = line;
-      if (
-        squares[a] &&
-        squares[a] === squares[b] &&
-        squares[a] === squares[c]
-      ) {
-        return squares[a];
-      }
-    }
-    if (!squares.includes(null)) return "Tie"; // Tie if no spaces left
-    return null;
-  };
-
-  const minimax = (newBoard: Player[], player: Player): any => {
-    const availSpots = newBoard
-      .map((val, idx) => (val === null ? idx : null))
-      .filter((v) => v !== null);
-
-    const winner = checkWinner(newBoard);
-    if (winner === "O") return { score: -10 };
-    else if (winner === "X") return { score: 10 };
-    else if (winner === "Tie") return { score: 0 };
-
-    let moves = [];
-    for (let i = 0; i < availSpots.length; i++) {
-      let move: any = {};
-      move.index = availSpots[i];
-      newBoard[availSpots[i]] = player;
-
-      let result = minimax(newBoard, player === "X" ? "O" : "X");
-      move.score = result.score;
-
-      newBoard[availSpots[i]] = null;
-      moves.push(move);
-    }
-
-    let bestMove;
-    if (player === "X") {
-      let bestScore = -10000;
-      for (let i = 0; i < moves.length; i++) {
-        if (moves[i].score > bestScore) {
-          bestScore = moves[i].score;
-          bestMove = moves[i];
-        }
-      }
-    } else {
-      let bestScore = 10000;
-      for (let i = 0; i < moves.length; i++) {
-        if (moves[i].score < bestScore) {
-          bestScore = moves[i].score;
-          bestMove = moves[i];
-        }
-      }
-    }
-    return bestMove;
-  };
-
   const handleClick = (index: number) => {
-    if (winner || board[index]) return;
+    if (board[index] || checkWinner(board)) return;
+
     const newBoard = [...board];
     newBoard[index] = currentPlayer;
     setBoard(newBoard);
 
-    const newWinner = checkWinner(newBoard);
-    if (newWinner) {
-      onWinner(newWinner);
+    const winner = checkWinner(newBoard);
+    if (winner) {
+      setWinner(winner);
       return;
     }
 
+    // Move setting the currentPlayer state to the end of the function to ensure it's the last thing done
+    let nextPlayer = currentPlayer;
+
     if (gameType === "PvC" && currentPlayer === "X") {
-      // Machine plays as 'O'
       const move = minimax(newBoard, "O");
       newBoard[move.index] = "O";
       setBoard(newBoard);
@@ -108,20 +39,56 @@ export const TicTacToe = ({ onPlayer, onWinner }: TicTacToeProps) => {
         setWinner(finalWinner);
         return;
       }
+      nextPlayer = "X"; // Keep the same player if it's PvC and the current player is X
+    } else if (gameType === "PvP") {
+      nextPlayer = currentPlayer === "X" ? "O" : "X"; // Switch player
     }
 
-    setCurrentPlayer(currentPlayer === "X" ? "O" : "X");
+    setCurrentPlayer(nextPlayer); // Update player after all other updates
   };
 
   const clearBoard = () => {
     setBoard(Array(9).fill(null));
-    setWinner(null);
-    onWinner("");
+    setWinner("");
+    setCurrentPlayer("X");
+  };
+
+  // Player icon display logic
+  const displayPlayerIcon = () => {
+    return currentPlayer === "X" ? (
+      <X strokeWidth={2} className="w-24 h-24 text-lime-300" />
+    ) : (
+      <Circle strokeWidth={2} className="w-20 h-20 text-fuchsia-500" />
+    );
+  };
+
+  // Result message display logic
+  const displayResultMessage = () => {
+    const baseClass = "text-3xl text-orange-500";
+    if (winner === "X" || winner === "O") {
+      const colorClass = winner === "X" ? "text-lime-300" : "text-fuchsia-500";
+      return <p className={cn(baseClass, colorClass)}>Winner</p>;
+    }
+    if (winner === "Tie") {
+      return <p className={baseClass}>Tie</p>;
+    }
+    return null;
   };
 
   return (
     <>
-      <div className="bg-fuchsia-500 shadow-2xl shadow-fuchsia-800 ">
+      <div className="text-3xl text-orange-500 h-28 flex flex-col items-center justify-center">
+        {displayPlayerIcon()}
+        {displayResultMessage()}
+      </div>
+      <div
+        className={cn(
+          "bg-amber-300 shadow-2xl",
+          currentPlayer === "X"
+            ? "shadow-lime-300 bg-lime-300"
+            : "shadow-fuchsia-500 bg-fuchsia-500",
+        )}
+      >
         <div className="grid grid-cols-3 gap-1">
           {board.map((cell, index) => (
             <Cell
@@ -135,7 +102,7 @@ export const TicTacToe = ({ onPlayer, onWinner }: TicTacToeProps) => {
       </div>
       <button
         onClick={clearBoard}
-        className="flex w-full bg-fuchsia-500 text-white hover:shadow-lg hover:shadow-fuchsia-500 items-center justify-center h-10 rounded-md"
+        className="flex w-full bg-orange-500 text-white hover:shadow-lg hover:shadow-orange-600 items-center justify-center h-10 rounded-md"
       >
         Reset
       </button>
