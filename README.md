@@ -2,6 +2,8 @@
 
 This project is a Tic-Tac-Toe game developed using React, Next.js, and TypeScript. It supports two game modes: Player vs. Player (PvP) and Player vs. AI (PvC), where the AI uses the minimax algorithm for decision making.
 
+[Link to website](https://tic-tac-toe-sable-gamma.vercel.app)
+
 ## Features
 
 - Two game modes:
